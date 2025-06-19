@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: Stupid Simple ADA Helper
- * Description: Helps your WordPress site move toward ADA compliance by injecting accessibility enhancements like skip links, ARIA roles, and alt tag checks.
+ * Description: Helps add common accessibility features like skip links, alt tag enforcement, and ARIA landmarks.
  * Version: 1.2
  * Author: Dynamic Technologies
  * Author URI: https://bedynamic.tech
