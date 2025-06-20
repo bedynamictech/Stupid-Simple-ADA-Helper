@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Stupid Simple ADA Helper
  * Description: Helps your WordPress site move toward ADA compliance by injecting accessibility enhancements like skip links, ARIA roles, and alt tag checks.
- * Version: 1.3
+ * Version: 1.2
  * Author: Dynamic Technologies
  * Author URI: https://bedynamic.tech
  * Plugin URI: https://github.com/bedynamictech/Stupid-Simple-ADA-Helper
@@ -56,24 +56,14 @@ function ssah_action_links($links) {
     return $links;
 }
 
-// AJAX handler for saving alt text
-add_action('wp_ajax_ssah_save_alt_text', 'ssah_save_alt_text');
-function ssah_save_alt_text() {
-    if (current_user_can('edit_posts') && isset($_POST['id']) && isset($_POST['alt'])) {
-        update_post_meta(intval($_POST['id']), '_wp_attachment_image_alt', sanitize_text_field($_POST['alt']));
-        wp_send_json_success();
-    }
-    wp_send_json_error();
-}
-
 // Settings Page Content
 function ssah_settings_page_content() {
     echo '<div class="wrap">';
     echo '<h2>Stupid Simple ADA Helper</h2>';
-    echo '<p>Helps add common accessibility features like skip links, alt tag enforcement, and ARIA landmarks.</p>';
+    echo '<p>This plugin helps add common accessibility features like skip links, alt tag enforcement, and ARIA landmarks.</p>';
     echo '<p>All features are automatically applied where possible.</p>';
 
-    // Inline: List Images Missing Alt Text with inline editor
+    // Inline: List Images Missing Alt Text
     echo '<h3>Images Missing Alt Text</h3>';
     $args = array(
         'post_type'      => 'attachment',
@@ -91,15 +81,10 @@ function ssah_settings_page_content() {
     $images = get_posts($args);
 
     if ($images) {
-        echo '<ul id="ssah-alt-list">';
+        echo '<ul>';
         foreach ($images as $image) {
-            $thumb = wp_get_attachment_image($image->ID, array(64, 64), true);
-            echo '<li data-id="' . esc_attr($image->ID) . '">' .
-                 $thumb .
-                 ' <strong>' . esc_html($image->post_title ?: 'Untitled Image') . '</strong><br>' .
-                 '<input type="text" placeholder="Enter alt text">' .
-                 ' <button class="button button-primary">Save</button>' .
-                 '</li>';
+            $edit_url = get_edit_post_link($image->ID);
+            echo '<li><a href="' . esc_url($edit_url) . '" target="_blank">' . esc_html($image->post_title ?: 'Untitled Image (ID: ' . $image->ID . ')') . '</a></li>';
         }
         echo '</ul>';
     } else {
@@ -107,35 +92,6 @@ function ssah_settings_page_content() {
     }
 
     echo '</div>';
-
-    echo '<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        document.querySelectorAll("#ssah-alt-list button").forEach(function(btn) {
-            btn.addEventListener("click", function() {
-                var li = btn.closest("li");
-                var id = li.getAttribute("data-id");
-                var alt = li.querySelector("input").value;
-                var data = new FormData();
-                data.append("action", "ssah_save_alt_text");
-                data.append("id", id);
-                data.append("alt", alt);
-
-                fetch(ajaxurl, {
-                    method: "POST",
-                    credentials: "same-origin",
-                    body: data
-                }).then(res => res.json()).then(json => {
-                    if (json.success) {
-                        li.style.opacity = 0.5;
-                        btn.textContent = "Saved";
-                    } else {
-                        btn.textContent = "Error";
-                    }
-                });
-            });
-        });
-    });
-    </script>';
 }
 
 // Inject Skip Link
